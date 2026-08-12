@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Default: Light Mode matching screenshot */
+  --bg-primary: #f2f5fa;
+  --bg-secondary: #ffffff;
+  --bg-header: #ffffff;
+  --bg-accent: #002b59;
+  --bg-card-blue: #e2edff;
+  --bg-gradient: #f2f5fa;
+
+  --text-primary: #0b1c30;
+  --text-secondary: #334155;
+  --text-dim: #64748b;
+  --border-color: #cbd5e1;
+  --card-shadow: 0 4px 18px -2px rgba(0, 43, 89, 0.08);
+
+  /* Stat Card Specific Colors */
+  --stat-pending-bg: #5d3900;
+  --stat-pending-text: #ffffff;
+  --stat-pending-badge-bg: rgba(255, 255, 255, 0.25);
+  --stat-pending-badge-text: #ffffff;
+
+  --stat-complete-bg: #006a6a;
+  --stat-complete-text: #ffffff;
+  --stat-complete-badge-bg: rgba(255, 255, 255, 0.25);
+  --stat-complete-badge-text: #ffffff;
+
+  --stat-assets-bg: #002b59;
+  --stat-assets-text: #ffffff;
+  --stat-assets-badge-bg: rgba(255, 255, 255, 0.25);
+  --stat-assets-badge-text: #ffffff;
+
+  /* Color accents for badges & buttons */
+  --color-emerald: #059669;
+  --color-emerald-bg: #ecfdf5;
+  --color-emerald-text: #065f46;
+
+  --color-blue: #0284c7;
+  --color-blue-bg: #f0f9ff;
+  --color-blue-text: #0369a1;
+
+  --color-red: #dc2626;
+  --color-red-bg: #fef2f2;
+  --color-red-text: #991b1b;
+
+  /* Button & Nav Highlights */
+  --btn-primary-bg: #002b59;
+  --btn-primary-text: #ffffff;
+  --nav-active-bg: #87ecec;
+  --nav-active-text: #002b59;
+  --badge-in-progress-bg: #ffe9d2;
+  --badge-in-progress-text: #8b4a00;
+  --progress-fill: #006a6a;
+}
+
+html.dark-mode, html.dark, .dark-mode, .dark {
+  --bg-primary: #0a0d14;
+  --bg-secondary: #131922;
+  --bg-header: #131922;
+  --bg-accent: #1e293b;
+  --bg-card-blue: #182232;
+  --bg-gradient: #0a0d14;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-dim: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+
+  /* Stat Card Specific Colors (Dark Luxury) */
+  --stat-pending-bg: #4a2d00;
+  --stat-pending-text: #ffd8a8;
+  --stat-pending-badge-bg: rgba(255, 216, 168, 0.2);
+  --stat-pending-badge-text: #ffd8a8;
+
+  --stat-complete-bg: #0d4a4a;
+  --stat-complete-text: #87ecec;
+  --stat-complete-badge-bg: rgba(135, 236, 236, 0.2);
+  --stat-complete-badge-text: #87ecec;
+
+  --stat-assets-bg: #0f2c59;
+  --stat-assets-text: #dbeafe;
+  --stat-assets-badge-bg: rgba(219, 234, 254, 0.2);
+  --stat-assets-badge-text: #dbeafe;
+
+  /* Color accents */
+  --color-emerald: #10b981;
+  --color-emerald-bg: rgba(16, 185, 129, 0.15);
+  --color-emerald-text: #34d399;
+
+  --color-blue: #38bdf8;
+  --color-blue-bg: rgba(56, 189, 248, 0.15);
+  --color-blue-text: #7dd3fc;
+
+  --color-red: #f87171;
+  --color-red-bg: rgba(248, 113, 113, 0.15);
+  --color-red-text: #fca5a5;
+
+  /* Button & Nav Highlights */
+  --btn-primary-bg: #0f2c59;
+  --btn-primary-text: #ffffff;
+  --nav-active-bg: #14b8a6;
+  --nav-active-text: #0f172a;
+  --badge-in-progress-bg: rgba(251, 146, 60, 0.15);
+  --badge-in-progress-text: #fb923c;
+  --progress-fill: #14b8a6;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Monospace font utility */
+.font-mono-code {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-dim);
+  border-radius: 9999px;
+  opacity: 0.3;
+}
+
+/* Scanner Transparency */
+html.barcode-scanner-active,
+html.barcode-scanner-active body,
+body.barcode-scanner-active,
+body.barcode-scanner-active #root,
+body.barcode-scanner-active main,
+body.barcode-scanner-active footer {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Soft Elevation for Cards */
+.card-elevated {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 1.25rem;
+}
+

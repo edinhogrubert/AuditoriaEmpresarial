@@ -1,0 +1,45 @@
+{
+  "name": "inventario-react",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "start": "node dist/server.cjs",
+    "lint": "tsc --noEmit",
+    "cap:sync": "cap sync",
+    "cap:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "^6.2.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@types/express": "^5.0.6",
+    "@zxing/library": "^0.21.3",
+    "adm-zip": "^0.6.0",
+    "canvas-confetti": "^1.9.4",
+    "esbuild": "^0.28.1",
+    "express": "^5.2.1",
+    "firebase": "^12.17.1",
+    "lucide-react": "^0.469.0",
+    "motion": "^11.15.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsx": "^4.23.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@types/adm-zip": "^0.5.8",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "entities": {
+    "Batch": {
+      "title": "Batch",
+      "description": "Inventory audit batch",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "name", "type", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/batches/{batchId}": {
+      "schema": "Batch",
+      "description": "Audit batches collection"
+    }
+  }
+}
