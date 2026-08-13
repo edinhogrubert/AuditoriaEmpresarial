@@ -27,10 +27,17 @@ import {
   CloudDownload,
 } from 'lucide-react';
 import { AppSettings, DeletePermission, BarcodePattern } from '../types';
-import { saveSettings } from '../services/storage';
+import {
+  saveSettings,
+  getStoredDeviceTag,
+  getStoredDeviceCustomName,
+  saveStoredDeviceCustomName,
+} from '../services/storage';
+import { registerOrGetDeviceSequence } from '../services/firebase';
 import { generateFullBackup, BackupData } from '../utils/qrChunker';
 import { BackupModal } from './BackupModal';
 import { CameraScanner } from './CameraScanner';
+import { User, Tag, RefreshCw } from 'lucide-react';
 
 interface SettingsScreenProps {
   settings: AppSettings;
@@ -52,6 +59,25 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [current, setCurrent] = useState<AppSettings>(settings);
   const [savedNotice, setSavedNotice] = useState(false);
   const [pendingBackupData, setPendingBackupData] = useState<BackupData | null>(null);
+
+  const [operatorNameInput, setOperatorNameInput] = useState<string>(getStoredDeviceCustomName());
+  const [deviceTag, setDeviceTag] = useState<string | null>(getStoredDeviceTag());
+  const [isRegisteringTag, setIsRegisteringTag] = useState(false);
+
+  const handleRegisterDeviceTag = async (forceNew: boolean = false) => {
+    setIsRegisteringTag(true);
+    try {
+      const tag = await registerOrGetDeviceSequence(operatorNameInput, forceNew);
+      setDeviceTag(tag);
+      saveStoredDeviceCustomName(operatorNameInput);
+      setSavedNotice(true);
+      setTimeout(() => setSavedNotice(false), 2000);
+    } catch (e: any) {
+      alert('Falha ao registrar sequencial: ' + e.message);
+    } finally {
+      setIsRegisteringTag(false);
+    }
+  };
 
   const [isPatternModalOpen, setIsPatternModalOpen] = useState(false);
   const [isScanningForPattern, setIsScanningForPattern] = useState(false);
@@ -161,7 +187,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen text-[var(--text-primary)] bg-[var(--bg-primary)] flex flex-col max-w-md mx-auto p-6 select-none relative pb-12 border-x border-[var(--border-color)]">
+    <div className={`min-h-screen text-[var(--text-primary)] flex flex-col max-w-md mx-auto p-6 select-none relative pb-12 border-x border-[var(--border-color)] transition-colors ${isScanningForPattern ? 'bg-transparent scanner-active-transparent' : 'bg-[var(--bg-primary)]'}`}>
       <div className="space-y-8 flex-1 overflow-y-auto pr-1 custom-scrollbar">
         <div className="px-1 pt-2">
           <span className="text-[10px] font-mono font-bold bg-[var(--bg-secondary)] text-[var(--color-blue)] px-2.5 py-1 rounded-md border border-[var(--border-color)] shadow-xs inline-block">
@@ -358,6 +384,50 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </div>
 
+        {/* Identidade do Aparelho */}
+        <div className="space-y-4">
+          <h2 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.25em] ml-1">
+            Identidade do Aparelho (Sequencial)
+          </h2>
+          <div className="card-elevated p-6 space-y-4 shadow-lg border-sky-500/10">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                <User className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-black uppercase tracking-tight">Nome / Tag do Operador</h3>
+                <p className="text-[10px] text-[var(--text-dim)] font-medium mt-0.5">
+                  Gera sufixo sequencial automático no Firebase (Ex: Pedro_1, Pedro_2)
+                </p>
+              </div>
+              <div className="px-2.5 py-1 rounded-xl bg-[var(--color-blue)]/10 text-[var(--color-blue)] border border-[var(--color-blue)]/20 text-xs font-mono font-bold flex items-center gap-1 shrink-0">
+                <Tag className="w-3.5 h-3.5" />
+                <span>{deviceTag || 'Pendente'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="text"
+                value={operatorNameInput}
+                onChange={(e) => setOperatorNameInput(e.target.value)}
+                placeholder="Ex: Pedro, Auditor, SetorA"
+                className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--color-blue)] text-[var(--text-primary)]"
+              />
+              <button
+                onClick={() => handleRegisterDeviceTag(true)}
+                disabled={isRegisteringTag}
+                className="px-4 py-3 bg-[#002b59] hover:bg-[#0f3d73] text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shrink-0 flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+              >
+                {isRegisteringTag ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Atualizar / Próximo +'}
+              </button>
+            </div>
+            <p className="text-[9px] text-[var(--text-dim)] font-medium leading-relaxed italic">
+              • O Firebase atribui um número incremental único para cada celular registrado sob o mesmo nome.
+            </p>
+          </div>
+        </div>
+
         {/* Cloud Sync Section */}
         <div className="space-y-4">
            <h2 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.25em] ml-1">Sincronização em Nuvem (Firebase)</h2>
@@ -407,8 +477,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       )}
 
       {isPatternModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in ${isScanningForPattern ? 'bg-black/80 scanner-active-transparent' : 'bg-black/60'}`}>
+          <div className={`border border-[var(--border-color)] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col transition-colors ${isScanningForPattern ? 'bg-transparent' : 'bg-[var(--bg-primary)]'}`}>
             {/* Modal Header */}
             <div className="p-5 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-secondary)]">
               <h3 className="font-black uppercase tracking-tight text-xs text-[var(--text-primary)]">

@@ -20,6 +20,7 @@ import {
 import { AppSettings } from '../types';
 import { getStoredBatches, getExpectedItemsForBatch, getScanCountForBatch, formatDateStr, getUniqueCategories, getUniqueDescriptions } from '../services/storage';
 import { decodeQrCodeFromImageFile } from '../utils/qrDecoder';
+import { parseCsvOrText, ParsedInventoryItem } from '../utils/csvParser';
 
 interface ImportInventoryScreenProps {
   onBack: () => void;
@@ -101,69 +102,10 @@ export const ImportInventoryScreen: React.FC<ImportInventoryScreenProps> = ({
     reader.onload = (evt) => {
       try {
         const text = evt.target?.result as string;
-        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-        if (lines.length === 0) {
-          setErrorMessage('O arquivo está vazio.');
-          setCsvFileName(null);
-          return;
-        }
-
-        let startIdx = 0;
-        const firstLineLower = lines[0].toLowerCase();
-        if (firstLineLower.includes('codigo') || firstLineLower.includes('patrimonio') || firstLineLower.includes('barcode')) {
-          startIdx = 1;
-        }
-
-        const dataLines = lines.slice(startIdx).filter((l) => l.trim().length > 0);
-        if (dataLines.length === 0) {
-          setErrorMessage('Nenhuma linha de dados encontrada no arquivo.');
-          setCsvFileName(null);
-          return;
-        }
-
-        const parsed: { barcode: string; description?: string; category?: string }[] = [];
-        let invalidColumnCount = false;
-        let detectedCols = 0;
-
-        for (let i = 0; i < dataLines.length; i++) {
-          const line = dataLines[i].trim();
-          if (!line) continue;
-
-          let cols = line.split(/[,;\t]|\s{2,}/).map((c) => c.replace(/^"|"$/g, '').trim()).filter(Boolean);
-          if (cols.length === 1 && cols[0].includes(' ')) {
-            const parts = cols[0].split(/\s+/);
-            if (parts.length > 1) {
-              cols = [parts[0], parts.slice(1).join(' ')];
-            }
-          }
-          detectedCols = cols.length;
-
-          // Accept 1, 2, or 3 columns
-          if (cols.length < 1 || cols.length > 3) {
-            invalidColumnCount = true;
-            break;
-          }
-
-          if (cols[0]) {
-            parsed.push({
-              barcode: cols[0],
-              description: cols[1] || undefined,
-              category: cols[2] || undefined,
-            });
-          }
-        }
-
-        if (invalidColumnCount) {
-          setErrorMessage(
-            `Importação Negada! O arquivo contém ${detectedCols} colunas. Apenas arquivos com 1 coluna (Patrimônio), 2 colunas (Patrimônio, Nome) ou 3 colunas (Patrimônio, Nome, Categoria) são aceitos.`
-          );
-          setCsvParsedItems([]);
-          setCsvFileName(null);
-          return;
-        }
+        const parsed = parseCsvOrText(text);
 
         if (parsed.length === 0) {
-          setErrorMessage('Nenhum código válido encontrado.');
+          setErrorMessage('Nenhum código/patrimônio válido encontrado no arquivo.');
           setCsvFileName(null);
         } else {
           setCsvParsedItems(parsed);
@@ -172,8 +114,10 @@ export const ImportInventoryScreen: React.FC<ImportInventoryScreenProps> = ({
           setIsSingleColumn(!hasDescriptions);
         }
       } catch (err) {
-        setErrorMessage('Erro ao ler CSV.');
+        setErrorMessage('Erro ao ler o arquivo.');
         setCsvFileName(null);
+      } finally {
+        if (e.target) e.target.value = '';
       }
     };
     reader.readAsText(file);
@@ -345,12 +289,11 @@ export const ImportInventoryScreen: React.FC<ImportInventoryScreenProps> = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    const lines = pastedText.split(/\r?\n|,/).map(l => l.trim()).filter(Boolean);
-                    if (lines.length === 0) {
+                    const parsed = parseCsvOrText(pastedText);
+                    if (parsed.length === 0) {
                       setErrorMessage('Nenhum patrimônio inserido.');
                       return;
                     }
-                    const parsed = lines.map(barcode => ({ barcode, description: 'Item Copiado', category: 'Geral' }));
                     if (targetBatchId) {
                       onAddExpectedToBatch(targetBatchId, parsed);
                     } else {
@@ -360,7 +303,7 @@ export const ImportInventoryScreen: React.FC<ImportInventoryScreenProps> = ({
                   }}
                   className="flex-1 py-3.5 bg-[#002b59] hover:bg-[#0f3d73] text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md"
                 >
-                  Processar e Inserir ({pastedText.split(/\r?\n|,/).filter(l => l.trim()).length})
+                  Processar e Inserir ({parseCsvOrText(pastedText).length})
                 </button>
                 <button
                   onClick={() => setPasteModalOpen(false)}

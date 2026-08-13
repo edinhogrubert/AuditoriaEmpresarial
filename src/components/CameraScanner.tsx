@@ -200,6 +200,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
           const stream = await navigator.mediaDevices.getUserMedia(constraints);
           mediaStreamRef.current = stream;
 
+          // Wait a tick for state/ref sync if needed
+          await new Promise(r => setTimeout(r, 50));
+
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             await videoRef.current.play().catch(() => {});
@@ -307,15 +310,16 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     <div className={`relative w-full h-full flex flex-col items-center justify-center overflow-hidden select-none ${usingWebcamFallback ? 'bg-black' : 'bg-transparent'}`}>
       <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileUpload} />
 
-      {usingWebcamFallback && (
-        <video
-          ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
-          muted
-          playsInline
-          autoPlay
-        />
-      )}
+      {/* Always render video element in DOM so videoRef is never null */}
+      <video
+        ref={videoRef}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${
+          usingWebcamFallback ? 'opacity-100 z-0 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+        }`}
+        muted
+        playsInline
+        autoPlay
+      />
 
       {isLoading && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0A0D14] space-y-4">

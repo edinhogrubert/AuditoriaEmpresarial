@@ -5,6 +5,7 @@ import { createBatch, getUniqueCategories, getUniqueDescriptions } from '../serv
 import { AppSettings } from '../types';
 import { decodeQrCodeFromImageFile } from '../utils/qrDecoder';
 import { parseQrChunk, combineQrChunks } from '../utils/qrChunker';
+import { parseCsvOrText } from '../utils/csvParser';
 
 interface QrImportScannerScreenProps {
   batchName: string;
@@ -90,65 +91,9 @@ export const QrImportScannerScreen: React.FC<QrImportScannerScreenProps> = ({
     }
   }, [scannedContent]);
 
-  const parseQrLines = (content: string, delimiter: string) => {
-    const rawLines = content.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
-    const parsed: { barcode: string; description?: string; category?: string }[] = [];
-    let invalidCols = false;
-    let colCountError = 0;
-
-    for (const line of rawLines) {
-      // Check if line is JSON format
-      if (line.startsWith('{') || line.startsWith('[')) {
-        try {
-          const jsonObj = JSON.parse(line);
-          if (Array.isArray(jsonObj)) {
-            jsonObj.forEach((item) => {
-              if (item.barcode || item.patrimonio || item.code) {
-                parsed.push({
-                  barcode: item.barcode || item.patrimonio || item.code,
-                  description: item.description || item.nome || item.nome_item,
-                  category: item.category || item.categoria,
-                });
-              } else if (typeof item === 'string') {
-                parsed.push({ barcode: item });
-              }
-            });
-            continue;
-          }
-        } catch (e) {}
-      }
-
-      let cols = line.includes(delimiter) && delimiter !== '\n'
-        ? line.split(delimiter).map((c) => c.replace(/^"|"$/g, '').trim()).filter(Boolean)
-        : line.split(/[,;\t]|\s{2,}/).map((c) => c.replace(/^"|"$/g, '').trim()).filter(Boolean);
-
-      if (cols.length === 1 && cols[0].includes(' ')) {
-        const parts = cols[0].split(/\s+/);
-        if (parts.length > 1) {
-          cols = [parts[0], parts.slice(1).join(' ')];
-        }
-      }
-
-      if (cols.length < 1 || cols.length > 3) {
-        invalidCols = true;
-        colCountError = cols.length;
-        break;
-      }
-      if (cols[0]) {
-        parsed.push({
-          barcode: cols[0],
-          description: cols[1] || undefined,
-          category: cols[2] || undefined,
-        });
-      }
-    }
-
-    return { parsed, invalidCols, colCountError };
-  };
-
-  const { parsed: parsedStructItems, invalidCols, colCountError } = scannedContent
-    ? parseQrLines(scannedContent, selectedDelimiter)
-    : { parsed: [], invalidCols: false, colCountError: 0 };
+  const parsedStructItems = scannedContent
+    ? parseCsvOrText(scannedContent, selectedDelimiter)
+    : [];
 
   const parsedItems = parsedStructItems.map((item) => item.barcode);
 
@@ -160,10 +105,22 @@ export const QrImportScannerScreen: React.FC<QrImportScannerScreenProps> = ({
     setIsProcessingImage(true);
 
     try {
-      const text = await decodeQrCodeFromImageFile(file);
-      handleRawScan(text);
+      if (
+        file.name.endsWith('.csv') ||
+        file.name.endsWith('.txt') ||
+        file.name.endsWith('.json') ||
+        file.type.includes('text') ||
+        file.type.includes('csv') ||
+        file.type.includes('json')
+      ) {
+        const text = await file.text();
+        handleRawScan(text);
+      } else {
+        const text = await decodeQrCodeFromImageFile(file);
+        handleRawScan(text);
+      }
     } catch (err: any) {
-      setUploadError(err?.message || 'Não foi possível ler o QR Code da imagem.');
+      setUploadError(err?.message || 'Não foi possível ler o arquivo ou a imagem selecionada.');
     } finally {
       setIsProcessingImage(false);
       if (e.target) e.target.value = '';
@@ -172,13 +129,6 @@ export const QrImportScannerScreen: React.FC<QrImportScannerScreenProps> = ({
 
   const handleConfirmImport = () => {
     if (!parsedStructItems.length) return;
-
-    if (invalidCols) {
-      setUploadError(
-        `Importação Negada! O QR Code possui linhas com ${colCountError} colunas. Apenas 1 coluna (Patrimônio), 2 colunas (Patrimônio, Nome) ou 3 colunas (Patrimônio, Nome, Categoria) são aceitas.`
-      );
-      return;
-    }
 
     let expectedList = parsedStructItems.map((item) => ({
       barcode: item.barcode.trim(),
@@ -238,13 +188,13 @@ export const QrImportScannerScreen: React.FC<QrImportScannerScreenProps> = ({
   };
 
   return (
-    <div className={`min-h-screen text-[#0b1c30] flex flex-col justify-between max-w-md mx-auto select-none relative pb-16 shadow-xl border-x border-[#c3c6d1]/30 transition-colors ${!scannedContent ? 'bg-transparent' : 'bg-[#f8f9ff]'}`}>
+    <div className={`min-h-screen text-[#0b1c30] flex flex-col justify-between max-w-md mx-auto select-none relative pb-16 shadow-xl border-x border-[#c3c6d1]/30 transition-colors ${!scannedContent ? 'bg-transparent scanner-active-transparent' : 'bg-[#f8f9ff]'}`}>
       
       {/* Hidden File Input for PC upload */}
       <input
         type="file"
         ref={fileInputRef}
-        accept="image/*"
+        accept=".csv,.txt,.json,image/*"
         className="hidden"
         onChange={handleFileUpload}
       />

@@ -9,6 +9,7 @@ export interface Batch {
   isClosed?: boolean;
   closedReason?: string;
   closedAt?: number;
+  createdBy?: string;
 }
 
 export interface ScanItem {

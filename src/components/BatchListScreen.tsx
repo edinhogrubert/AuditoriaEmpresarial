@@ -10,9 +10,11 @@ import {
   SearchCheck,
   BarChart3,
   FileUp,
+  FolderSync,
 } from 'lucide-react';
 import { Batch } from '../types';
 import { formatDateStr, getScanCountForBatch, getAuditStatsForBatch } from '../services/storage';
+import { CloudSyncModal } from './CloudSyncModal';
 
 interface BatchListScreenProps {
   batches: Batch[];
@@ -24,6 +26,7 @@ interface BatchListScreenProps {
   onExportClick: () => void;
   initialFilter?: 'ALL' | 'COLLECTION' | 'VERIFICATION' | 'PENDING' | 'COMPLETED';
   hideQuickActions?: boolean;
+  onRefresh?: () => void;
 }
 
 export const BatchListScreen: React.FC<BatchListScreenProps> = ({
@@ -36,8 +39,10 @@ export const BatchListScreen: React.FC<BatchListScreenProps> = ({
   onExportClick,
   initialFilter = 'ALL',
   hideQuickActions = false,
+  onRefresh,
 }) => {
   const [filterType, setFilterType] = useState<'ALL' | 'COLLECTION' | 'VERIFICATION' | 'PENDING' | 'COMPLETED'>(initialFilter);
+  const [showCloudSync, setShowCloudSync] = useState(false);
 
   const filteredBatches = batches.filter((b) => {
     if (filterType === 'ALL') return true;
@@ -75,13 +80,23 @@ export const BatchListScreen: React.FC<BatchListScreenProps> = ({
           </button>
           <h1 className="text-lg font-black uppercase tracking-tight">{getTitle()}</h1>
         </div>
-        <button
-          onClick={onExportClick}
-          className="p-2.5 rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20 active:scale-95 transition-all shadow-sm"
-          title="Exportar Múltiplos"
-        >
-          <Download className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCloudSync(true)}
+            className="p-2.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 active:scale-95 transition-all shadow-sm flex items-center gap-1 font-bold text-xs px-3"
+            title="Carga & Descarga Cloud Firebase"
+          >
+            <FolderSync className="w-4 h-4" />
+            <span className="hidden sm:inline">Nuvem</span>
+          </button>
+          <button
+            onClick={onExportClick}
+            className="p-2.5 rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20 active:scale-95 transition-all shadow-sm"
+            title="Exportar Múltiplos"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="py-6 space-y-6 flex-1 overflow-hidden flex flex-col">
@@ -197,6 +212,14 @@ export const BatchListScreen: React.FC<BatchListScreenProps> = ({
           </div>
         )}
       </div>
+
+      <CloudSyncModal
+        isOpen={showCloudSync}
+        onClose={() => setShowCloudSync(false)}
+        onDataChanged={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
     </div>
   );
 };

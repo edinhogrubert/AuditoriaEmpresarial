@@ -21,8 +21,11 @@ import {
   Search,
   AlertTriangle,
   FileJson,
+  FolderSync,
+  CloudUpload,
 } from 'lucide-react';
 import { QrCodeExportModal } from './QrCodeExportModal';
+import { CloudSyncModal } from './CloudSyncModal';
 import { Batch, ScanItem, ExpectedItem } from '../types';
 import {
   formatDateStr,
@@ -196,6 +199,7 @@ export const BatchDetailsScreen: React.FC<BatchDetailsScreenProps> = ({
 
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [showCloudSync, setShowCloudSync] = useState(false);
 
   const handleExportCsv = () => {
     exportSingleBatchToCsv(batch, scanItems);
@@ -382,6 +386,14 @@ export const BatchDetailsScreen: React.FC<BatchDetailsScreenProps> = ({
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCloudSync(true)}
+            className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 active:scale-95 transition-all text-xs font-bold uppercase flex items-center gap-1.5 shadow-xs"
+            title="Carga & Descarga Cloud Firebase"
+          >
+            <FolderSync className="w-4 h-4" />
+            <span className="hidden sm:inline">Nuvem</span>
+          </button>
           {onViewAuditLog && (
             <button
               onClick={onViewAuditLog}
@@ -1101,6 +1113,26 @@ export const BatchDetailsScreen: React.FC<BatchDetailsScreenProps> = ({
               <button
                 onClick={() => {
                   setExportMenuOpen(false);
+                  setShowCloudSync(true);
+                }}
+                className="w-full card-elevated p-4 rounded-2xl border border-[var(--border-color)] hover:border-emerald-500 flex items-center gap-3.5 text-left transition-all active:scale-[0.98] shadow-sm group"
+              >
+                <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                  <CloudUpload className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)] block">
+                    Carga & Descarga Cloud (Firebase)
+                  </span>
+                  <span className="text-[9px] text-[var(--text-secondary)] font-medium">
+                    Sincronize ou mescle dados online com a nuvem
+                  </span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setExportMenuOpen(false);
                   setQrModalOpen(true);
                 }}
                 className="w-full card-elevated p-4 rounded-2xl border border-[var(--border-color)] hover:border-amber-500 flex items-center gap-3.5 text-left transition-all active:scale-[0.98] shadow-sm group"
@@ -1132,6 +1164,13 @@ export const BatchDetailsScreen: React.FC<BatchDetailsScreenProps> = ({
           payload={batchQrPayload}
         />
       )}
+
+      {/* Cloud Sync Carga & Descarga Modal */}
+      <CloudSyncModal
+        isOpen={showCloudSync}
+        onClose={() => setShowCloudSync(false)}
+        onDataChanged={onRefresh}
+      />
     </div>
   );
 };

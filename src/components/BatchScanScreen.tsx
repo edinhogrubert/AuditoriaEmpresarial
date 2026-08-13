@@ -39,7 +39,7 @@ export const BatchScanScreen: React.FC<BatchScanScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-screen bg-transparent text-white flex flex-col select-none overflow-hidden max-w-md mx-auto">
+    <div className="relative w-full h-screen bg-transparent scanner-active-transparent text-white flex flex-col select-none overflow-hidden max-w-md mx-auto">
       {/* Top Header */}
       <div className="absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between">
         <div className="flex items-center gap-3">

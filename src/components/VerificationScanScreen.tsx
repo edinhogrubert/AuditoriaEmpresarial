@@ -49,7 +49,7 @@ export const VerificationScanScreen: React.FC<VerificationScanScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-screen bg-transparent text-white flex flex-col select-none overflow-hidden max-w-md mx-auto">
+    <div className="relative w-full h-screen bg-transparent scanner-active-transparent text-white flex flex-col select-none overflow-hidden max-w-md mx-auto">
       
       {/* Top Overlay Header */}
       <header className="relative z-20 w-full flex justify-between items-center px-4 h-14 bg-gradient-to-b from-black/70 to-transparent text-white">
@@ -71,7 +71,7 @@ export const VerificationScanScreen: React.FC<VerificationScanScreenProps> = ({
       </header>
 
       {/* Main Camera Viewfinder View */}
-      <main className="flex-1 relative z-10 flex flex-col items-center justify-center pointer-events-none -mt-14">
+      <main className="flex-1 relative z-10 flex flex-col items-center justify-center -mt-14">
         <CameraScanner onScan={handleScan} />
 
         {/* Viewfinder Cutout Frame */}

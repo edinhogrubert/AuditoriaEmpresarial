@@ -10,6 +10,11 @@ import {
   ChevronRight,
   Package,
   Sparkles,
+  Cloud,
+  CloudOff,
+  Info,
+  X,
+  Database
 } from 'lucide-react';
 import {
   getStoredBatches,
@@ -18,6 +23,8 @@ import {
   formatDateStr,
   getAllAssetRecords,
 } from '../services/storage';
+import { getFirebaseStatusInfo } from '../services/firebase';
+import { CloudSyncModal } from './CloudSyncModal';
 
 interface MainScreenProps {
   onNavigate: (screen: string, filter?: string) => void;
@@ -25,6 +32,9 @@ interface MainScreenProps {
 }
 
 export const MainScreen: React.FC<MainScreenProps> = ({ onNavigate, onOpenBatchDetails }) => {
+  const [showFirebaseModal, setShowFirebaseModal] = useState(false);
+  const firebaseStatus = getFirebaseStatusInfo();
+
   const batches = getStoredBatches();
   const allAssetRecords = getAllAssetRecords();
 
@@ -78,14 +88,41 @@ export const MainScreen: React.FC<MainScreenProps> = ({ onNavigate, onOpenBatchD
           </div>
           <h1 className="text-base font-bold text-[var(--text-primary)] tracking-tight">Inventário & Auditoria</h1>
         </div>
-        <button 
-          onClick={() => onNavigate('settings')}
-          className="p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded-full transition-colors relative active:scale-95"
-          title="Ajustes"
-        >
-          <Bell className="w-5 h-5 text-[var(--text-primary)]" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 shadow-sm"></span>
-        </button>
+
+        <div className="flex items-center gap-1">
+          {/* Indicador de Status do Firebase ao lado do Sino */}
+          <button
+            onClick={() => setShowFirebaseModal(true)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-all active:scale-95 border ${
+              firebaseStatus.configured
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+            }`}
+            title="Status do Banco de Dados Cloud (Firebase)"
+          >
+            <span className="relative flex h-2 w-2">
+              {firebaseStatus.configured ? (
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </>
+              ) : (
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              )}
+            </span>
+            <span className="hidden sm:inline">{firebaseStatus.configured ? 'Firebase' : 'Local'}</span>
+          </button>
+
+          {/* Sino de Notificações / Ajustes */}
+          <button 
+            onClick={() => onNavigate('settings')}
+            className="p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded-full transition-colors relative active:scale-95"
+            title="Ajustes do Sistema"
+          >
+            <Bell className="w-5 h-5 text-[var(--text-primary)]" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 shadow-sm"></span>
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -292,6 +329,15 @@ export const MainScreen: React.FC<MainScreenProps> = ({ onNavigate, onOpenBatchD
           <span className="text-[10px] font-semibold mt-0.5">Ajustes</span>
         </button>
       </nav>
+
+      {/* Modal de Carga & Descarga Cloud Firebase */}
+      <CloudSyncModal
+        isOpen={showFirebaseModal}
+        onClose={() => setShowFirebaseModal(false)}
+        onDataChanged={() => {
+          // Data updated from cloud
+        }}
+      />
     </div>
   );
 };

@@ -147,7 +147,8 @@ html.barcode-scanner-active body,
 body.barcode-scanner-active,
 body.barcode-scanner-active #root,
 body.barcode-scanner-active main,
-body.barcode-scanner-active footer {
+body.barcode-scanner-active footer,
+body.barcode-scanner-active .scanner-active-transparent {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;

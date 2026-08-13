@@ -5,6 +5,36 @@ const SCAN_ITEMS_KEY = 'inventario_scan_items_v2';
 const EXPECTED_ITEMS_KEY = 'inventario_expected_items_v2';
 const SETTINGS_KEY = 'inventario_settings_v2';
 const AUDIT_LOGS_KEY = 'inventario_audit_logs_v2';
+const DEVICE_TAG_KEY = 'inventario_device_tag_v1';
+const DEVICE_CUSTOM_NAME_KEY = 'inventario_device_custom_name_v1';
+
+export const getStoredDeviceTag = (): string | null => {
+  try {
+    return localStorage.getItem(DEVICE_TAG_KEY);
+  } catch (e) {
+    return null;
+  }
+};
+
+export const saveStoredDeviceTag = (tag: string) => {
+  try {
+    localStorage.setItem(DEVICE_TAG_KEY, tag);
+  } catch (e) {}
+};
+
+export const getStoredDeviceCustomName = (): string => {
+  try {
+    return localStorage.getItem(DEVICE_CUSTOM_NAME_KEY) || 'Dispositivo';
+  } catch (e) {
+    return 'Dispositivo';
+  }
+};
+
+export const saveStoredDeviceCustomName = (name: string) => {
+  try {
+    localStorage.setItem(DEVICE_CUSTOM_NAME_KEY, name.trim() || 'Dispositivo');
+  } catch (e) {}
+};
 
 export const getStoredAuditLogs = (): AuditLog[] => {
   try {
